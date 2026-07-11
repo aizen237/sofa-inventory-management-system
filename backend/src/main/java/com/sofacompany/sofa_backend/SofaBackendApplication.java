@@ -8,6 +8,4 @@ public class SofaBackendApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(SofaBackendApplication.class, args);
-	}
-
-}
+	}}
