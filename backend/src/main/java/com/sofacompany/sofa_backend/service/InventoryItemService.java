@@ -15,6 +15,7 @@ import com.sofacompany.sofa_backend.dto.SaleResponse;
 import com.sofacompany.sofa_backend.entity.SaleRecord;
 import com.sofacompany.sofa_backend.repository.SaleRecordRepository;
 import org.springframework.transaction.annotation.Transactional;
+import com.sofacompany.sofa_backend.dto.SaleHistoryResponse;
 
 import java.util.List;
 
@@ -174,6 +175,33 @@ public class InventoryItemService {
                 item.getStatus().name(),
                 savedRecord.getSoldAt()
         );
+    }
+
+    public List<SaleHistoryResponse> getSaleHistoryForUser(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        boolean isOwner = user.getRole().getName().equals("OWNER");
+
+        List<SaleRecord> records;
+
+        if (isOwner) {
+            records = saleRecordRepository.findAllByOrderBySoldAtDesc();
+        } else {
+            Long branchId = user.getBranch().getId();
+            records = saleRecordRepository.findByBranchIdOrderBySoldAtDesc(branchId);
+        }
+
+        return records.stream().map(r -> new SaleHistoryResponse(
+                r.getId(),
+                r.getInventoryItem().getCode(),
+                r.getInventoryItem().getItemType().name(),
+                r.getQuantitySold(),
+                r.getPriceAtSale(),
+                r.getBranch().getName(),
+                r.getSoldBy().getName(),
+                r.getSoldAt()
+        )).toList();
     }
 
     private InventoryItemResponse toResponse(InventoryItem item) {

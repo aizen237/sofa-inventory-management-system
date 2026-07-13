@@ -7,7 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import com.sofacompany.sofa_backend.dto.SaleRequest;
 import com.sofacompany.sofa_backend.dto.SaleResponse;
-
+import com.sofacompany.sofa_backend.dto.SaleHistoryResponse;
 import java.util.List;
 
 @RestController
@@ -39,6 +39,12 @@ public class InventoryItemController {
                                             Authentication authentication) {
         String email = authentication.getName();
         return inventoryItemService.updateItem(id, request, email);
+    }
+
+    @GetMapping("/history")
+    public List<SaleHistoryResponse> getSaleHistory(Authentication authentication) {
+        String email = authentication.getName();
+        return inventoryItemService.getSaleHistoryForUser(email);
     }
 
     @PostMapping("/{id}/sell")
