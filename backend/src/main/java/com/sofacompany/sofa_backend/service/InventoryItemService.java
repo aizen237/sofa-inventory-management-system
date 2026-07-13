@@ -10,6 +10,11 @@ import com.sofacompany.sofa_backend.repository.BranchRepository;
 import com.sofacompany.sofa_backend.repository.InventoryItemRepository;
 import com.sofacompany.sofa_backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import com.sofacompany.sofa_backend.dto.SaleRequest;
+import com.sofacompany.sofa_backend.dto.SaleResponse;
+import com.sofacompany.sofa_backend.entity.SaleRecord;
+import com.sofacompany.sofa_backend.repository.SaleRecordRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,13 +24,16 @@ public class InventoryItemService {
     private final InventoryItemRepository inventoryItemRepository;
     private final BranchRepository branchRepository;
     private final UserRepository userRepository;
+    private final SaleRecordRepository saleRecordRepository;
 
     public InventoryItemService(InventoryItemRepository inventoryItemRepository,
                                 BranchRepository branchRepository,
-                                UserRepository userRepository) {
+                                UserRepository userRepository,
+                                SaleRecordRepository saleRecordRepository) {
         this.inventoryItemRepository = inventoryItemRepository;
         this.branchRepository = branchRepository;
         this.userRepository = userRepository;
+        this.saleRecordRepository = saleRecordRepository;
     }
 
     public InventoryItemResponse createItem(InventoryItemRequest request, String creatorEmail) {
@@ -110,6 +118,62 @@ public class InventoryItemService {
         }
 
         return items.stream().map(this::toResponse).toList();
+    }
+
+    @Transactional
+    public SaleResponse sellItem(Long itemId, SaleRequest request, String requesterEmail) {
+        InventoryItem item = inventoryItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found"));
+
+        User requester = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        boolean isOwner = requester.getRole().getName().equals("OWNER");
+
+        if (!isOwner && !item.getBranch().getId().equals(requester.getBranch().getId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You cannot sell items from another branch");
+        }
+
+        if (request.getQuantitySold() == null || request.getQuantitySold() <= 0) {
+            throw new IllegalArgumentException("Quantity sold must be greater than zero");
+        }
+
+        if (request.getQuantitySold() > item.getQuantity()) {
+            throw new IllegalArgumentException(
+                    "Cannot sell " + request.getQuantitySold() + " units — only " + item.getQuantity() + " in stock");
+        }
+
+        // Subtract stock
+        int newQuantity = item.getQuantity() - request.getQuantitySold();
+        item.setQuantity(newQuantity);
+
+        // Auto-flip status if sold out
+        if (newQuantity == 0) {
+            item.setStatus(InventoryItem.ItemStatus.UNAVAILABLE);
+        }
+
+        item.setUpdatedAt(java.time.LocalDateTime.now());
+        inventoryItemRepository.save(item);
+
+        // Create the permanent sale record
+        SaleRecord saleRecord = new SaleRecord();
+        saleRecord.setInventoryItem(item);
+        saleRecord.setQuantitySold(request.getQuantitySold());
+        saleRecord.setPriceAtSale(item.getPrice()); // price at the moment of sale
+        saleRecord.setBranch(item.getBranch());
+        saleRecord.setSoldBy(requester);
+        SaleRecord savedRecord = saleRecordRepository.save(saleRecord);
+
+        return new SaleResponse(
+                savedRecord.getId(),
+                item.getCode(),
+                savedRecord.getQuantitySold(),
+                savedRecord.getPriceAtSale(),
+                item.getQuantity(),
+                item.getStatus().name(),
+                savedRecord.getSoldAt()
+        );
     }
 
     private InventoryItemResponse toResponse(InventoryItem item) {

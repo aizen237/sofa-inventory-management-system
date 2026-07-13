@@ -5,6 +5,8 @@ import com.sofacompany.sofa_backend.dto.InventoryItemResponse;
 import com.sofacompany.sofa_backend.service.InventoryItemService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.sofacompany.sofa_backend.dto.SaleRequest;
+import com.sofacompany.sofa_backend.dto.SaleResponse;
 
 import java.util.List;
 
@@ -37,5 +39,13 @@ public class InventoryItemController {
                                             Authentication authentication) {
         String email = authentication.getName();
         return inventoryItemService.updateItem(id, request, email);
+    }
+
+    @PostMapping("/{id}/sell")
+    public SaleResponse sellItem(@PathVariable Long id,
+                                 @RequestBody SaleRequest request,
+                                 Authentication authentication) {
+        String email = authentication.getName();
+        return inventoryItemService.sellItem(id, request, email);
     }
 }
