@@ -30,4 +30,12 @@ public class InventoryItemController {
         String email = authentication.getName();
         return inventoryItemService.getItemsForUser(email, itemType);
     }
+
+    @PutMapping("/{id}")
+    public InventoryItemResponse updateItem(@PathVariable Long id,
+                                            @RequestBody InventoryItemRequest request,
+                                            Authentication authentication) {
+        String email = authentication.getName();
+        return inventoryItemService.updateItem(id, request, email);
+    }
 }

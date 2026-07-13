@@ -53,6 +53,37 @@ public class InventoryItemService {
         return toResponse(saved);
     }
 
+    public InventoryItemResponse updateItem(Long id, InventoryItemRequest request, String requesterEmail) {
+        InventoryItem item = inventoryItemRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found"));
+
+        User requester = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        boolean isOwner = requester.getRole().getName().equals("OWNER");
+
+        // Branch enforcement: employees can only edit items in their own branch
+        if (!isOwner && !item.getBranch().getId().equals(requester.getBranch().getId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You cannot edit items from another branch");
+        }
+
+        // If code is changing, make sure the new code isn't already taken by a different item
+        if (!item.getCode().equals(request.getCode()) && inventoryItemRepository.existsByCode(request.getCode())) {
+            throw new IllegalArgumentException("An item with this code already exists");
+        }
+
+        item.setCode(request.getCode());
+        item.setItemType(InventoryItem.ItemType.valueOf(request.getItemType().toUpperCase()));
+        item.setPrice(request.getPrice());
+        item.setQuantity(request.getQuantity());
+        item.setDescription(request.getDescription());
+        item.setUpdatedAt(java.time.LocalDateTime.now());
+
+        InventoryItem saved = inventoryItemRepository.save(item);
+        return toResponse(saved);
+    }
+
     public List<InventoryItemResponse> getItemsForUser(String userEmail, String itemType) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
