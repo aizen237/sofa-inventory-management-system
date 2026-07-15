@@ -18,6 +18,8 @@ export default function InventoryTable({ itemType, title, description }: Props) 
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const totalValue = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0);
 
   async function loadItems() {
     setLoading(true);
@@ -60,11 +62,30 @@ export default function InventoryTable({ itemType, title, description }: Props) 
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="font-display text-2xl font-semibold text-charcoal">
-          {title}
-        </h1>
-        <p className="text-graytext text-sm mt-1">{description}</p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-charcoal">
+            {title}
+          </h1>
+          <p className="text-graytext text-sm mt-1">{description}</p>
+        </div>
+
+        {!loading && !error && (
+          <div className="flex gap-3">
+            <div className="bg-white rounded-xl border border-black/10 px-5 py-3 text-right">
+              <p className="text-xs text-graytext font-medium">Total Value</p>
+              <p className="font-display text-lg font-semibold text-charcoal">
+                {totalValue.toLocaleString()} ETB
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-black/10 px-5 py-3 text-right">
+              <p className="text-xs text-graytext font-medium">Total Units</p>
+              <p className="font-display text-lg font-semibold text-charcoal">
+                {totalUnits.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {loading && (
