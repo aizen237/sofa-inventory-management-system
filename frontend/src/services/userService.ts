@@ -6,6 +6,16 @@ export async function getUsers(): Promise<UserSummary[]> {
   return response.data;
 }
 
+export async function updateUser(
+  id: number,
+  fullName: string,
+  branchId: number,
+  active: boolean
+) {
+  const response = await api.put(`/users/${id}`, { fullName, branchId, active });
+  return response.data;
+}
+
 export async function createUser(
   fullName: string,
   roleName: string,

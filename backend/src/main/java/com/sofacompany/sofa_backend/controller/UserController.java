@@ -6,6 +6,9 @@ import com.sofacompany.sofa_backend.service.UserService;
 import org.springframework.web.bind.annotation.*;
 import com.sofacompany.sofa_backend.dto.UserSummaryResponse;
 import java.util.List;
+import com.sofacompany.sofa_backend.dto.UpdateUserRequest;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/users")
@@ -20,6 +23,11 @@ public class UserController {
     @PostMapping
     public CreateUserResponse createUser(@RequestBody CreateUserRequest request) {
         return userService.createUser(request);
+    }
+
+    @PutMapping("/{id}")
+    public UserSummaryResponse updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {
+        return userService.updateUser(id, request);
     }
     @GetMapping
     public List<UserSummaryResponse> getAllUsers() {

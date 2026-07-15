@@ -13,6 +13,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.sofacompany.sofa_backend.dto.UserSummaryResponse;
 import java.util.List;
+import com.sofacompany.sofa_backend.entity.Branch;
+import com.sofacompany.sofa_backend.exception.ResourceNotFoundException;
+import com.sofacompany.sofa_backend.dto.UpdateUserRequest;
 
 @Service
 public class UserService {
@@ -61,6 +64,31 @@ public class UserService {
         userRepository.save(user);
 
         return new CreateUserResponse(username, plainPassword);
+    }
+
+    public UserSummaryResponse updateUser(Long id, UpdateUserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        user.setName(request.getFullName());
+        user.setActive(request.isActive());
+
+        if (request.getBranchId() != null) {
+            Branch branch = branchRepository.findById(request.getBranchId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
+            user.setBranch(branch);
+        }
+
+        userRepository.save(user);
+
+        return new UserSummaryResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole().getName(),
+                user.getBranch() != null ? user.getBranch().getName() : "—",
+                user.isActive()
+        );
     }
 
     public List<UserSummaryResponse> getAllUsers() {

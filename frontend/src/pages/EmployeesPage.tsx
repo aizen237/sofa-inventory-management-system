@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { getUsers } from "../services/userService.ts";
+import { getUsers } from "../services/userService";
 import type { UserSummary } from "../types/user";
 import AddEmployeeModal from "../components/AddEmployeeModal";
+import EditUserModal from "../components/EditUserModal";
 
 export default function EmployeesPage() {
   const [users, setUsers] = useState<UserSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserSummary | null>(null);
 
   async function loadUsers() {
     setLoading(true);
@@ -23,7 +25,7 @@ export default function EmployeesPage() {
   }
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
     loadUsers();
   }, []);
 
@@ -64,6 +66,7 @@ export default function EmployeesPage() {
                 <th className="px-5 py-3.5 font-semibold">Role</th>
                 <th className="px-5 py-3.5 font-semibold">Branch</th>
                 <th className="px-5 py-3.5 font-semibold">Status</th>
+                <th className="px-5 py-3.5 font-semibold text-right">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -95,6 +98,14 @@ export default function EmployeesPage() {
                       {user.active ? "Active" : "Inactive"}
                     </span>
                   </td>
+                  <td className="px-5 py-4 text-right">
+                    <button
+                      onClick={() => setEditingUser(user)}
+                      className="text-charcoal/60 hover:text-charcoal font-medium transition-colors"
+                    >
+                      Edit
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -105,6 +116,14 @@ export default function EmployeesPage() {
       {showAddModal && (
         <AddEmployeeModal
           onClose={() => setShowAddModal(false)}
+          onSuccess={loadUsers}
+        />
+      )}
+
+      {editingUser && (
+        <EditUserModal
+          user={editingUser}
+          onClose={() => setEditingUser(null)}
           onSuccess={loadUsers}
         />
       )}
