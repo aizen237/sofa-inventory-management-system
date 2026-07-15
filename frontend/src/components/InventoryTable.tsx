@@ -3,6 +3,7 @@ import { getItems, sellItem } from "../services/inventoryService";
 import type { InventoryItem } from "../types/inventory";
 import AddItemModal from "./AddItemModal";
 import EditItemModal from "./EditItemModal";
+import { useToastStore } from "../store/toastStore";
 
 interface Props {
   itemType: "SOFA" | "CHAIR" | "TABLE";
@@ -22,7 +23,7 @@ export default function InventoryTable({ itemType, title, description }: Props) 
   const [error, setError] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
-
+  const showToast = useToastStore((state) => state.showToast);
   const totalValue = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -46,25 +47,26 @@ export default function InventoryTable({ itemType, title, description }: Props) 
   }, [itemType]);
 
   async function handleSell(item: InventoryItem) {
-    const input = window.prompt(`How many units of ${item.code} did you sell?`);
-    if (!input) return;
+  const input = window.prompt(`How many units of ${item.code} did you sell?`);
+  if (!input) return;
 
-    const quantity = Number(input);
-    if (!Number.isInteger(quantity) || quantity <= 0) {
-      alert("Please enter a valid whole number greater than zero.");
-      return;
-    }
-
-    try {
-      await sellItem(item.id, quantity);
-      await loadItems();
-    } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed to record sale.";
-      alert(message);
-    }
+  const quantity = Number(input);
+  if (!Number.isInteger(quantity) || quantity <= 0) {
+    showToast("Please enter a valid whole number greater than zero.", "error");
+    return;
   }
+
+  try {
+    await sellItem(item.id, quantity);
+    await loadItems();
+    showToast(`Sold ${quantity} unit(s) of ${item.code}.`);
+  } catch (err: unknown) {
+    const message =
+      (err as { response?: { data?: { message?: string } } })?.response?.data
+        ?.message ?? "Failed to record sale.";
+    showToast(message, "error");
+  }
+}
 
   const itemLabel = itemType.charAt(0) + itemType.slice(1).toLowerCase();
 

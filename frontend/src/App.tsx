@@ -8,10 +8,12 @@ import ChairsPage from "./pages/ChairsPage";
 import TablesPage from "./pages/TablesPage";
 import EmployeesPage from "./pages/EmployeesPage";
 import SalesHistoryPage from "./pages/SalesHistoryPage";
+import ToastContainer from "./components/ToastContainer";
 
 function App() {
   return (
     <BrowserRouter>
+    <ToastContainer />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/sofas" element={<SofasPage />} />
