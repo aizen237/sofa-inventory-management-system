@@ -37,11 +37,11 @@ export default function InventoryTable({ itemType, title, description }: Props) 
     }
   }
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadItems();
-  }, [itemType]);
-
+ useEffect(() => {
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  loadItems();
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [itemType]);
   async function handleSell(item: InventoryItem) {
     const input = window.prompt(`How many units of ${item.code} did you sell?`);
     if (!input) return;

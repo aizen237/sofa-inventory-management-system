@@ -6,6 +6,7 @@ import MainLayout from "./layouts/MainLayout";
 import SofasPage from "./pages/SofasPage";
 import ChairsPage from "./pages/ChairsPage";
 import TablesPage from "./pages/TablesPage";
+import EmployeesPage from "./pages/EmployeesPage";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/sofas" element={<SofasPage />} />
         <Route path="/chairs" element={<ChairsPage />} />
         <Route path="/tables" element={<TablesPage />} />
+        <Route path="/employees" element={<EmployeesPage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />

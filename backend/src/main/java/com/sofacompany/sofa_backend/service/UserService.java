@@ -11,6 +11,8 @@ import com.sofacompany.sofa_backend.repository.UserRepository;
 import com.sofacompany.sofa_backend.security.CredentialGenerator;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.sofacompany.sofa_backend.dto.UserSummaryResponse;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -59,5 +61,18 @@ public class UserService {
         userRepository.save(user);
 
         return new CreateUserResponse(username, plainPassword);
+    }
+
+    public List<UserSummaryResponse> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(u -> new UserSummaryResponse(
+                        u.getId(),
+                        u.getName(),
+                        u.getEmail(),
+                        u.getRole().getName(),
+                        u.getBranch() != null ? u.getBranch().getName() : "—",
+                        u.isActive()
+                ))
+                .toList();
     }
 }
