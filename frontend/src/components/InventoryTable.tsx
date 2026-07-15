@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getItems, sellItem } from "../services/inventoryService";
 import type { InventoryItem } from "../types/inventory";
+import AddItemModal from "./AddItemModal";
 
 interface Props {
   itemType: "SOFA" | "CHAIR" | "TABLE";
@@ -18,6 +19,8 @@ export default function InventoryTable({ itemType, title, description }: Props) 
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+
   const totalValue = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -60,6 +63,8 @@ export default function InventoryTable({ itemType, title, description }: Props) 
     }
   }
 
+  const itemLabel = itemType.charAt(0) + itemType.slice(1).toLowerCase();
+
   return (
     <div>
       <div className="mb-6 flex items-start justify-between">
@@ -70,22 +75,31 @@ export default function InventoryTable({ itemType, title, description }: Props) 
           <p className="text-graytext text-sm mt-1">{description}</p>
         </div>
 
-        {!loading && !error && (
-          <div className="flex gap-3">
-            <div className="bg-white rounded-xl border border-black/10 px-5 py-3 text-right">
-              <p className="text-xs text-graytext font-medium">Total Value</p>
-              <p className="font-display text-lg font-semibold text-charcoal">
-                {totalValue.toLocaleString()} ETB
-              </p>
+        <div className="flex items-start gap-3">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-brand hover:bg-brand-dark text-white font-medium text-sm rounded-lg px-4 py-2.5 transition-colors"
+          >
+            + Add {itemLabel}
+          </button>
+
+          {!loading && !error && (
+            <div className="flex gap-3">
+              <div className="bg-white rounded-xl border border-black/10 px-5 py-3 text-right">
+                <p className="text-xs text-graytext font-medium">Total Value</p>
+                <p className="font-display text-lg font-semibold text-charcoal">
+                  {totalValue.toLocaleString()} ETB
+                </p>
+              </div>
+              <div className="bg-white rounded-xl border border-black/10 px-5 py-3 text-right">
+                <p className="text-xs text-graytext font-medium">Total Units</p>
+                <p className="font-display text-lg font-semibold text-charcoal">
+                  {totalUnits.toLocaleString()}
+                </p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl border border-black/10 px-5 py-3 text-right">
-              <p className="text-xs text-graytext font-medium">Total Units</p>
-              <p className="font-display text-lg font-semibold text-charcoal">
-                {totalUnits.toLocaleString()}
-              </p>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {loading && (
@@ -151,6 +165,14 @@ export default function InventoryTable({ itemType, title, description }: Props) 
             </tbody>
           </table>
         </div>
+      )}
+
+      {showAddModal && (
+        <AddItemModal
+          itemType={itemType}
+          onClose={() => setShowAddModal(false)}
+          onSuccess={loadItems}
+        />
       )}
     </div>
   );
