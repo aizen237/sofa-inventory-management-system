@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getItems, sellItem } from "../services/inventoryService";
 import type { InventoryItem } from "../types/inventory";
 import AddItemModal from "./AddItemModal";
+import EditItemModal from "./EditItemModal";
 
 interface Props {
   itemType: "SOFA" | "CHAIR" | "TABLE";
@@ -20,6 +21,7 @@ export default function InventoryTable({ itemType, title, description }: Props) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
 
   const totalValue = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -37,11 +39,12 @@ export default function InventoryTable({ itemType, title, description }: Props) 
     }
   }
 
- useEffect(() => {
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  loadItems();
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [itemType]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemType]);
+
   async function handleSell(item: InventoryItem) {
     const input = window.prompt(`How many units of ${item.code} did you sell?`);
     if (!input) return;
@@ -151,7 +154,13 @@ export default function InventoryTable({ itemType, title, description }: Props) 
                       {item.status}
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-right">
+                  <td className="px-5 py-4 text-right space-x-3">
+                    <button
+                      onClick={() => setEditingItem(item)}
+                      className="text-charcoal/60 hover:text-charcoal font-medium transition-colors"
+                    >
+                      Edit
+                    </button>
                     <button
                       onClick={() => handleSell(item)}
                       disabled={item.quantity === 0}
@@ -171,6 +180,14 @@ export default function InventoryTable({ itemType, title, description }: Props) 
         <AddItemModal
           itemType={itemType}
           onClose={() => setShowAddModal(false)}
+          onSuccess={loadItems}
+        />
+      )}
+
+      {editingItem && (
+        <EditItemModal
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
           onSuccess={loadItems}
         />
       )}
