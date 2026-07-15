@@ -9,6 +9,7 @@ import com.sofacompany.sofa_backend.dto.SaleRequest;
 import com.sofacompany.sofa_backend.dto.SaleResponse;
 import com.sofacompany.sofa_backend.dto.SaleHistoryResponse;
 import java.util.List;
+import com.sofacompany.sofa_backend.dto.DashboardStatsResponse;
 
 @RestController
 @RequestMapping("/items")
@@ -45,6 +46,12 @@ public class InventoryItemController {
     public List<SaleHistoryResponse> getSaleHistory(Authentication authentication) {
         String email = authentication.getName();
         return inventoryItemService.getSaleHistoryForUser(email);
+    }
+
+    @GetMapping("/stats")
+    public DashboardStatsResponse getStats(Authentication authentication) {
+        String email = authentication.getName();
+        return inventoryItemService.getDashboardStats(email);
     }
 
     @PostMapping("/{id}/sell")

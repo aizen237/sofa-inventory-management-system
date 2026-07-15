@@ -16,6 +16,9 @@ import com.sofacompany.sofa_backend.entity.SaleRecord;
 import com.sofacompany.sofa_backend.repository.SaleRecordRepository;
 import org.springframework.transaction.annotation.Transactional;
 import com.sofacompany.sofa_backend.dto.SaleHistoryResponse;
+import com.sofacompany.sofa_backend.dto.DashboardStatsResponse;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import java.util.List;
 
@@ -202,6 +205,37 @@ public class InventoryItemService {
                 r.getSoldBy().getName(),
                 r.getSoldAt()
         )).toList();
+    }
+
+    public DashboardStatsResponse getDashboardStats(String userEmail) {
+        List<InventoryItemResponse> items = getItemsForUser(userEmail, null);
+
+        long totalItems = items.stream().mapToLong(InventoryItemResponse::getQuantity).sum();
+
+        BigDecimal totalValue = items.stream()
+                .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        long totalSofas = items.stream()
+                .filter(i -> i.getItemType().equals("SOFA"))
+                .mapToLong(InventoryItemResponse::getQuantity).sum();
+
+        long totalChairs = items.stream()
+                .filter(i -> i.getItemType().equals("CHAIR"))
+                .mapToLong(InventoryItemResponse::getQuantity).sum();
+
+        long totalTables = items.stream()
+                .filter(i -> i.getItemType().equals("TABLE"))
+                .mapToLong(InventoryItemResponse::getQuantity).sum();
+
+        List<SaleHistoryResponse> allSales = getSaleHistoryForUser(userEmail);
+        LocalDate today = LocalDate.now();
+        int soldToday = allSales.stream()
+                .filter(s -> s.getSoldAt().toLocalDate().equals(today))
+                .mapToInt(SaleHistoryResponse::getQuantitySold)
+                .sum();
+
+        return new DashboardStatsResponse(totalItems, totalValue, totalSofas, totalChairs, totalTables, soldToday);
     }
 
     private InventoryItemResponse toResponse(InventoryItem item) {
