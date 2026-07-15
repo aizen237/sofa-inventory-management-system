@@ -7,6 +7,7 @@ import SofasPage from "./pages/SofasPage";
 import ChairsPage from "./pages/ChairsPage";
 import TablesPage from "./pages/TablesPage";
 import EmployeesPage from "./pages/EmployeesPage";
+import SalesHistoryPage from "./pages/SalesHistoryPage";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/chairs" element={<ChairsPage />} />
         <Route path="/tables" element={<TablesPage />} />
         <Route path="/employees" element={<EmployeesPage />} />
+        <Route path="/sales-history" element={<SalesHistoryPage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
