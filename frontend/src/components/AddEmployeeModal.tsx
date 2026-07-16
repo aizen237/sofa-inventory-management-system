@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createUser } from "../services/userService.ts";
 import type { CreateUserResult } from "../types/user";
+import { useToastStore } from "../store/toastStore";
 
 interface Props {
   onClose: () => void;
@@ -13,6 +14,7 @@ export default function AddEmployeeModal({ onClose, onSuccess }: Props) {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<CreateUserResult | null>(null);
+  const showToast = useToastStore((state) => state.showToast);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,9 +40,10 @@ export default function AddEmployeeModal({ onClose, onSuccess }: Props) {
   }
 
   function handleDone() {
-    onSuccess();
-    onClose();
-  }
+  showToast("Employee account created.");
+  onSuccess();
+  onClose();
+}
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">

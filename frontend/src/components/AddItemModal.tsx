@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../services/api";
-
+import { useToastStore } from "../store/toastStore";
+import { useAuthStore } from "../store/authStore";
 interface Props {
   itemType: "SOFA" | "CHAIR" | "TABLE";
   onClose: () => void;
@@ -8,14 +9,19 @@ interface Props {
 }
 
 export default function AddItemModal({ itemType, onClose, onSuccess }: Props) {
-  const [code, setCode] = useState("");
+  const role = useAuthStore((state) => state.role);
+const userBranchId = useAuthStore((state) => state.branchId);
+const [code, setCode] = useState("");
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [description, setDescription] = useState("");
-  const [branchId, setBranchId] = useState("");
+  const [branchId, setBranchId] = useState(
+  role === "OWNER" ? "" : String(userBranchId ?? "")
+);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
+  const showToast = useToastStore((state) => state.showToast);
+  
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -35,6 +41,7 @@ export default function AddItemModal({ itemType, onClose, onSuccess }: Props) {
         description: description.trim(),
         branchId: Number(branchId),
       });
+      showToast(`${code.trim()} added successfully.`);
       onSuccess();
       onClose();
     } catch (err: unknown) {
@@ -98,20 +105,22 @@ export default function AddItemModal({ itemType, onClose, onSuccess }: Props) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-graytext mb-1.5">
-              Branch *
-            </label>
-            <select
-              value={branchId}
-              onChange={(e) => setBranchId(e.target.value)}
-              className="w-full border border-black/10 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white"
-            >
-              <option value="">Select branch</option>
-              <option value="4">Addis Ababa</option>
-              <option value="5">Hawassa</option>
-            </select>
-          </div>
+          {role === "OWNER" && (
+            <div>
+              <label className="block text-xs font-medium text-graytext mb-1.5">
+                Branch *
+              </label>
+              <select
+                value={branchId}
+                onChange={(e) => setBranchId(e.target.value)}
+                className="w-full border border-black/10 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white"
+              >
+                <option value="">Select branch</option>
+                <option value="4">Addis Ababa</option>
+                <option value="5">Hawassa</option>
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-medium text-graytext mb-1.5">

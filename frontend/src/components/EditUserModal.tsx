@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { updateUser } from "../services/userService";
 import type { UserSummary } from "../types/user";
+import { useToastStore } from "../store/toastStore";
 
 interface Props {
   user: UserSummary;
@@ -23,6 +24,7 @@ export default function EditUserModal({ user, onClose, onSuccess }: Props) {
   const [active, setActive] = useState(user.active);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const showToast = useToastStore((state) => state.showToast);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,6 +38,7 @@ export default function EditUserModal({ user, onClose, onSuccess }: Props) {
     setSubmitting(true);
     try {
       await updateUser(user.id, fullName.trim(), Number(branchId), active);
+      showToast(`${fullName.trim()} updated successfully.`);
       onSuccess();
       onClose();
     } catch (err: unknown) {

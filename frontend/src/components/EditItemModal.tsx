@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { updateItem } from "../services/inventoryService";
 import type { InventoryItem } from "../types/inventory";
+import { useToastStore } from "../store/toastStore";
 
 interface Props {
   item: InventoryItem;
@@ -15,6 +16,7 @@ export default function EditItemModal({ item, onClose, onSuccess }: Props) {
   const [description, setDescription] = useState(item.description ?? "");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const showToast = useToastStore((state) => state.showToast);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,6 +36,7 @@ export default function EditItemModal({ item, onClose, onSuccess }: Props) {
         quantity: Number(quantity),
         description: description.trim(),
       });
+      showToast(`${code.trim()} updated successfully.`);
       onSuccess();
       onClose();
     } catch (err: unknown) {

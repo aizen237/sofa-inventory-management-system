@@ -45,11 +45,20 @@ public class InventoryItemService {
             throw new IllegalArgumentException("An item with this code already exists");
         }
 
-        Branch branch = branchRepository.findById(request.getBranchId())
-                .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
-
         User creator = userRepository.findByEmail(creatorEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        boolean isOwner = creator.getRole().getName().equals("OWNER");
+
+        Long targetBranchId;
+        if (isOwner) {
+            targetBranchId = request.getBranchId();
+        } else {
+            targetBranchId = creator.getBranch().getId();
+        }
+
+        Branch branch = branchRepository.findById(targetBranchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
 
         InventoryItem item = new InventoryItem();
         item.setCode(request.getCode());
