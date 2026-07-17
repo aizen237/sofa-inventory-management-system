@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { updateUser } from "../services/userService";
 import type { UserSummary } from "../types/user";
 import { useToastStore } from "../store/toastStore";
+import { getBranches } from "../services/branchService";
+import type { Branch } from "../types/branch";
 
 interface Props {
   user: UserSummary;
@@ -9,22 +11,25 @@ interface Props {
   onSuccess: () => void;
 }
 
-const branchOptions = [
-  { id: 4, name: "Addis Ababa" },
-  { id: 5, name: "Hawassa" },
-];
-
 export default function EditUserModal({ user, onClose, onSuccess }: Props) {
-  const currentBranch = branchOptions.find((b) => b.name === user.branchName);
-
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [fullName, setFullName] = useState(user.name);
-  const [branchId, setBranchId] = useState(
-    currentBranch ? String(currentBranch.id) : ""
-  );
+  const [branchId, setBranchId] = useState("");
   const [active, setActive] = useState(user.active);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const showToast = useToastStore((state) => state.showToast);
+
+  useEffect(() => {
+    getBranches().then((data) => {
+      setBranches(data);
+      const currentBranch = data.find((b) => b.name === user.branchName);
+      if (currentBranch) {
+        setBranchId(String(currentBranch.id));
+      }
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -84,7 +89,7 @@ export default function EditUserModal({ user, onClose, onSuccess }: Props) {
               className="w-full border border-black/10 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white"
             >
               <option value="">Select branch</option>
-              {branchOptions.map((b) => (
+              {branches.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
                 </option>

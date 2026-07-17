@@ -10,6 +10,7 @@ import EmployeesPage from "./pages/EmployeesPage";
 import SalesHistoryPage from "./pages/SalesHistoryPage";
 import ToastContainer from "./components/ToastContainer";
 import SettingsPage from "./pages/SettingsPage";
+import AuditLogsPage from "./pages/AuditLogsPage";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/employees" element={<EmployeesPage />} />
         <Route path="/sales-history" element={<SalesHistoryPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/audit-logs" element={<AuditLogsPage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />

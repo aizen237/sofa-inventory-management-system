@@ -5,6 +5,7 @@ import com.sofacompany.sofa_backend.dto.LoginResponse;
 import com.sofacompany.sofa_backend.entity.User;
 import com.sofacompany.sofa_backend.repository.UserRepository;
 import com.sofacompany.sofa_backend.security.JwtUtil;
+import com.sofacompany.sofa_backend.service.AuditLogService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import com.sofacompany.sofa_backend.exception.InvalidCredentialsException;
@@ -16,11 +17,14 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final AuditLogService auditLogService;
 
-    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                          JwtUtil jwtUtil, AuditLogService auditLogService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.auditLogService = auditLogService;
     }
 
     @PostMapping("/login")
@@ -41,6 +45,8 @@ public class AuthController {
                 user.getRole().getName(),
                 user.getBranch() != null ? user.getBranch().getId() : null
         );
+
+        auditLogService.log(user, "LOGIN", "Authentication", user.getId(), user.getBranch(), "User logged in");
 
         return new LoginResponse(token, user.getRole().getName(), user.getBranch() != null ? user.getBranch().getId() : null);
     }

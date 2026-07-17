@@ -6,8 +6,22 @@ export default function SalesHistoryPage() {
   const [sales, setSales] = useState<SaleHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [branchFilter, setBranchFilter] = useState("ALL");
 
-  const totalRevenue = sales.reduce(
+  const branches = Array.from(new Set(sales.map((s) => s.branchName))).sort();
+
+  const filteredSales = sales.filter((sale) => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      sale.itemCode.toLowerCase().includes(q) ||
+      sale.soldByName.toLowerCase().includes(q) ||
+      sale.branchName.toLowerCase().includes(q);
+    const matchesBranch = branchFilter === "ALL" || sale.branchName === branchFilter;
+    return matchesSearch && matchesBranch;
+  });
+
+  const totalRevenue = filteredSales.reduce(
     (sum, s) => sum + s.priceAtSale * s.quantitySold,
     0
   );
@@ -68,6 +82,32 @@ export default function SalesHistoryPage() {
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
       {!loading && !error && (
+        <div className="flex items-center gap-3 mb-4">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by item, employee, or branch..."
+            className="flex-1 border border-black/10 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white"
+          />
+          {branches.length > 1 && (
+            <select
+              value={branchFilter}
+              onChange={(e) => setBranchFilter(e.target.value)}
+              className="border border-black/10 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white"
+            >
+              <option value="ALL">All Branches</option>
+              {branches.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
+
+      {!loading && !error && (
         <div className="bg-white rounded-xl border border-black/10 overflow-hidden shadow-sm">
           <table className="w-full text-sm">
             <thead>
@@ -82,14 +122,16 @@ export default function SalesHistoryPage() {
               </tr>
             </thead>
             <tbody>
-              {sales.length === 0 && (
+              {filteredSales.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-5 py-12 text-center text-graytext">
-                    No sales recorded yet.
+                    {sales.length === 0
+                      ? "No sales recorded yet."
+                      : "No sales match your search."}
                   </td>
                 </tr>
               )}
-              {sales.map((sale) => (
+              {filteredSales.map((sale) => (
                 <tr
                   key={sale.saleId}
                   className="border-b border-black/5 last:border-0 hover:bg-black/[0.015] transition-colors"

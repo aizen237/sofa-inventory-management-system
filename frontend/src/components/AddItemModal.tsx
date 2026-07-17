@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../services/api";
 import { useToastStore } from "../store/toastStore";
 import { useAuthStore } from "../store/authStore";
+import { getBranches } from "../services/branchService";
+import type { Branch } from "../types/branch";
+
 interface Props {
   itemType: "SOFA" | "CHAIR" | "TABLE";
   onClose: () => void;
@@ -10,18 +13,24 @@ interface Props {
 
 export default function AddItemModal({ itemType, onClose, onSuccess }: Props) {
   const role = useAuthStore((state) => state.role);
-const userBranchId = useAuthStore((state) => state.branchId);
-const [code, setCode] = useState("");
+  const userBranchId = useAuthStore((state) => state.branchId);
+  const [code, setCode] = useState("");
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [description, setDescription] = useState("");
   const [branchId, setBranchId] = useState(
-  role === "OWNER" ? "" : String(userBranchId ?? "")
-);
+    role === "OWNER" ? "" : String(userBranchId ?? "")
+  );
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const showToast = useToastStore((state) => state.showToast);
-  
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    getBranches().then(setBranches).catch(() => {});
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -116,8 +125,11 @@ const [code, setCode] = useState("");
                 className="w-full border border-black/10 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white"
               >
                 <option value="">Select branch</option>
-                <option value="4">Addis Ababa</option>
-                <option value="5">Hawassa</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
               </select>
             </div>
           )}

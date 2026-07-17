@@ -9,6 +9,7 @@ import java.util.List;
 import com.sofacompany.sofa_backend.dto.UpdateUserRequest;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/users")
@@ -21,8 +22,8 @@ public class UserController {
     }
 
     @PostMapping
-    public CreateUserResponse createUser(@RequestBody CreateUserRequest request) {
-        return userService.createUser(request);
+    public CreateUserResponse createUser(@RequestBody CreateUserRequest request, Authentication authentication) {
+        return userService.createUser(request, authentication.getName());
     }
 
     @PutMapping("/{id}")

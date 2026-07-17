@@ -29,15 +29,18 @@ public class InventoryItemService {
     private final BranchRepository branchRepository;
     private final UserRepository userRepository;
     private final SaleRecordRepository saleRecordRepository;
+    private final AuditLogService auditLogService;
 
     public InventoryItemService(InventoryItemRepository inventoryItemRepository,
                                 BranchRepository branchRepository,
                                 UserRepository userRepository,
-                                SaleRecordRepository saleRecordRepository) {
+                                SaleRecordRepository saleRecordRepository,
+                                AuditLogService auditLogService) {
         this.inventoryItemRepository = inventoryItemRepository;
         this.branchRepository = branchRepository;
         this.userRepository = userRepository;
         this.saleRecordRepository = saleRecordRepository;
+        this.auditLogService = auditLogService;
     }
 
     public InventoryItemResponse createItem(InventoryItemRequest request, String creatorEmail) {
@@ -71,6 +74,10 @@ public class InventoryItemService {
         item.setCreatedBy(creator);
 
         InventoryItem saved = inventoryItemRepository.save(item);
+
+        auditLogService.log(creator, "CREATE", "InventoryItem", saved.getId(), branch,
+                "Created item " + saved.getCode() + " (qty: " + saved.getQuantity() + ")");
+
         return toResponse(saved);
     }
 
@@ -99,9 +106,21 @@ public class InventoryItemService {
         item.setPrice(request.getPrice());
         item.setQuantity(request.getQuantity());
         item.setDescription(request.getDescription());
+
+        // Re-evaluate status based on the new quantity
+        if (request.getQuantity() > 0 && item.getStatus() == InventoryItem.ItemStatus.UNAVAILABLE) {
+            item.setStatus(InventoryItem.ItemStatus.AVAILABLE);
+        } else if (request.getQuantity() == 0) {
+            item.setStatus(InventoryItem.ItemStatus.UNAVAILABLE);
+        }
+
         item.setUpdatedAt(java.time.LocalDateTime.now());
 
         InventoryItem saved = inventoryItemRepository.save(item);
+
+        auditLogService.log(requester, "UPDATE", "InventoryItem", saved.getId(), saved.getBranch(),
+                "Updated item " + saved.getCode());
+
         return toResponse(saved);
     }
 
@@ -168,6 +187,9 @@ public class InventoryItemService {
 
         item.setUpdatedAt(java.time.LocalDateTime.now());
         inventoryItemRepository.save(item);
+
+        auditLogService.log(requester, "SOLD", "InventoryItem", item.getId(), item.getBranch(),
+                "Sold " + request.getQuantitySold() + " unit(s) of " + item.getCode());
 
         // Create the permanent sale record
         SaleRecord saleRecord = new SaleRecord();

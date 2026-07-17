@@ -24,9 +24,19 @@ export default function InventoryTable({ itemType, title, description }: Props) 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [sellingItem, setSellingItem] = useState<InventoryItem | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "AVAILABLE" | "UNAVAILABLE">("ALL");
 
   const totalValue = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const filteredItems = items.filter((item) => {
+    const matchesSearch =
+      item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.description ?? "").toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "ALL" || item.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   async function loadItems() {
     setLoading(true);
@@ -95,6 +105,29 @@ export default function InventoryTable({ itemType, title, description }: Props) 
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
       {!loading && !error && (
+        <div className="flex items-center gap-3 mb-4">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by code or description..."
+            className="flex-1 border border-black/10 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white"
+          />
+          <select
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter(e.target.value as "ALL" | "AVAILABLE" | "UNAVAILABLE")
+            }
+            className="border border-black/10 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white"
+          >
+            <option value="ALL">All Status</option>
+            <option value="AVAILABLE">Available</option>
+            <option value="UNAVAILABLE">Unavailable</option>
+          </select>
+        </div>
+      )}
+
+      {!loading && !error && (
         <div className="bg-white rounded-xl border border-black/10 overflow-hidden shadow-sm">
           <table className="w-full text-sm">
             <thead>
@@ -108,14 +141,14 @@ export default function InventoryTable({ itemType, title, description }: Props) 
               </tr>
             </thead>
             <tbody>
-              {items.length === 0 && (
+              {filteredItems.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-graytext">
-                    No items found.
+                    {items.length === 0 ? "No items found." : "No items match your search."}
                   </td>
                 </tr>
               )}
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <tr
                   key={item.id}
                   className="border-b border-black/5 last:border-0 hover:bg-black/[0.015] transition-colors"

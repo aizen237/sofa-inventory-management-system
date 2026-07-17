@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { createUser } from "../services/userService.ts";
+import { useState, useEffect } from "react";
+import { createUser } from "../services/userService";
 import type { CreateUserResult } from "../types/user";
 import { useToastStore } from "../store/toastStore";
+import { getBranches } from "../services/branchService";
+import type { Branch } from "../types/branch";
 
 interface Props {
   onClose: () => void;
@@ -11,10 +13,16 @@ interface Props {
 export default function AddEmployeeModal({ onClose, onSuccess }: Props) {
   const [fullName, setFullName] = useState("");
   const [branchId, setBranchId] = useState("");
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<CreateUserResult | null>(null);
   const showToast = useToastStore((state) => state.showToast);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    getBranches().then(setBranches).catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,10 +48,10 @@ export default function AddEmployeeModal({ onClose, onSuccess }: Props) {
   }
 
   function handleDone() {
-  showToast("Employee account created.");
-  onSuccess();
-  onClose();
-}
+    showToast("Employee account created.");
+    onSuccess();
+    onClose();
+  }
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
@@ -81,8 +89,11 @@ export default function AddEmployeeModal({ onClose, onSuccess }: Props) {
                   className="w-full border border-black/10 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white"
                 >
                   <option value="">Select branch</option>
-                  <option value="4">Addis Ababa</option>
-                  <option value="5">Hawassa</option>
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 

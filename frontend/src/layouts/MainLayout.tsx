@@ -12,6 +12,7 @@ const navItems = [
 
 const adminItems = [
   { label: "Employees", path: "/employees" },
+  { label: "Audit Logs", path: "/audit-logs" },
 ];
 
 export default function MainLayout() {

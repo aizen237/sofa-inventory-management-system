@@ -13,9 +13,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.sofacompany.sofa_backend.dto.UserSummaryResponse;
 import java.util.List;
-import com.sofacompany.sofa_backend.entity.Branch;
 import com.sofacompany.sofa_backend.exception.ResourceNotFoundException;
 import com.sofacompany.sofa_backend.dto.UpdateUserRequest;
+import com.sofacompany.sofa_backend.dto.ChangePasswordRequest;
+import com.sofacompany.sofa_backend.exception.InvalidCredentialsException;
 
 @Service
 public class UserService {
@@ -25,18 +26,20 @@ public class UserService {
     private final BranchRepository branchRepository;
     private final PasswordEncoder passwordEncoder;
     private final CredentialGenerator credentialGenerator;
+    private final AuditLogService auditLogService;
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
                        BranchRepository branchRepository, PasswordEncoder passwordEncoder,
-                       CredentialGenerator credentialGenerator) {
+                       CredentialGenerator credentialGenerator, AuditLogService auditLogService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.branchRepository = branchRepository;
         this.passwordEncoder = passwordEncoder;
         this.credentialGenerator = credentialGenerator;
+        this.auditLogService = auditLogService;
     }
 
-    public CreateUserResponse createUser(CreateUserRequest request) {
+    public CreateUserResponse createUser(CreateUserRequest request, String creatorEmail) {
         Role role = roleRepository.findByName(request.getRoleName())
                 .orElseThrow(() -> new RuntimeException("Invalid role: " + request.getRoleName()));
 
@@ -61,9 +64,30 @@ public class UserService {
         user.setActive(true);
         user.setMustChangePassword(true);
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        User creator = userRepository.findByEmail(creatorEmail).orElse(null);
+        auditLogService.log(creator, "CREATE", "User", savedUser.getId(), branch,
+                "Created employee account: " + savedUser.getName());
 
         return new CreateUserResponse(username, plainPassword);
+    }
+
+    public void changePassword(String email, ChangePasswordRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new InvalidCredentialsException("Current password is incorrect");
+        }
+
+        if (request.getNewPassword() == null || request.getNewPassword().length() < 8) {
+            throw new IllegalArgumentException("New password must be at least 8 characters");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setMustChangePassword(false);
+        userRepository.save(user);
     }
 
     public UserSummaryResponse updateUser(Long id, UpdateUserRequest request) {
