@@ -1,18 +1,29 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import logo from "../assets/logo.jpg";
+import {
+  LayoutDashboard,
+  Sofa,
+  Armchair,
+  Table2,
+  History,
+  Users,
+  ShieldCheck,
+  Settings,
+  LogOut,
+} from "lucide-react";
 
 const navItems = [
-  { label: "Dashboard", path: "/dashboard" },
-  { label: "Sofas", path: "/sofas" },
-  { label: "Chairs", path: "/chairs" },
-  { label: "Tables", path: "/tables" },
-  { label: "Sales History", path: "/sales-history" },
+  { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { label: "Sofas", path: "/sofas", icon: Sofa },
+  { label: "Chairs", path: "/chairs", icon: Armchair },
+  { label: "Tables", path: "/tables", icon: Table2 },
+  { label: "Sales History", path: "/sales-history", icon: History },
 ];
 
 const adminItems = [
-  { label: "Employees", path: "/employees" },
-  { label: "Audit Logs", path: "/audit-logs" },
+  { label: "Employees", path: "/employees", icon: Users },
+  { label: "Audit Logs", path: "/audit-logs", icon: ShieldCheck },
 ];
 
 export default function MainLayout() {
@@ -49,6 +60,7 @@ export default function MainLayout() {
           </p>
           {navItems.map((item) => (
             <NavLink key={item.path} to={item.path} className={linkClass}>
+              <item.icon size={17} className="inline-block mr-2.5 -mt-0.5" />
               {item.label}
             </NavLink>
           ))}
@@ -60,6 +72,7 @@ export default function MainLayout() {
               </p>
               {adminItems.map((item) => (
                 <NavLink key={item.path} to={item.path} className={linkClass}>
+                  <item.icon size={17} className="inline-block mr-2.5 -mt-0.5" />
                   {item.label}
                 </NavLink>
               ))}
@@ -69,12 +82,14 @@ export default function MainLayout() {
 
         <div className="px-3 pb-4 space-y-1">
           <NavLink to="/settings" className={linkClass}>
+            <Settings size={17} className="inline-block mr-2.5 -mt-0.5" />
             Settings
           </NavLink>
           <button
             onClick={handleLogout}
-            className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+            className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors flex items-center"
           >
+            <LogOut size={17} className="mr-2.5" />
             Logout
           </button>
         </div>
