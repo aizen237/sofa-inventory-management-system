@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { getItems, sellItem } from "../services/inventoryService";
+import { getItems } from "../services/inventoryService";
 import type { InventoryItem } from "../types/inventory";
 import AddItemModal from "./AddItemModal";
 import EditItemModal from "./EditItemModal";
-import { useToastStore } from "../store/toastStore";
+import SellItemModal from "./SellItemModal";
 
 interface Props {
   itemType: "SOFA" | "CHAIR" | "TABLE";
@@ -23,7 +23,8 @@ export default function InventoryTable({ itemType, title, description }: Props) 
   const [error, setError] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
-  const showToast = useToastStore((state) => state.showToast);
+  const [sellingItem, setSellingItem] = useState<InventoryItem | null>(null);
+
   const totalValue = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -45,28 +46,6 @@ export default function InventoryTable({ itemType, title, description }: Props) 
     loadItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemType]);
-
-  async function handleSell(item: InventoryItem) {
-  const input = window.prompt(`How many units of ${item.code} did you sell?`);
-  if (!input) return;
-
-  const quantity = Number(input);
-  if (!Number.isInteger(quantity) || quantity <= 0) {
-    showToast("Please enter a valid whole number greater than zero.", "error");
-    return;
-  }
-
-  try {
-    await sellItem(item.id, quantity);
-    await loadItems();
-    showToast(`Sold ${quantity} unit(s) of ${item.code}.`);
-  } catch (err: unknown) {
-    const message =
-      (err as { response?: { data?: { message?: string } } })?.response?.data
-        ?.message ?? "Failed to record sale.";
-    showToast(message, "error");
-  }
-}
 
   const itemLabel = itemType.charAt(0) + itemType.slice(1).toLowerCase();
 
@@ -164,7 +143,7 @@ export default function InventoryTable({ itemType, title, description }: Props) 
                       Edit
                     </button>
                     <button
-                      onClick={() => handleSell(item)}
+                      onClick={() => setSellingItem(item)}
                       disabled={item.quantity === 0}
                       className="text-brand hover:text-brand-dark font-semibold disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
@@ -190,6 +169,14 @@ export default function InventoryTable({ itemType, title, description }: Props) 
         <EditItemModal
           item={editingItem}
           onClose={() => setEditingItem(null)}
+          onSuccess={loadItems}
+        />
+      )}
+
+      {sellingItem && (
+        <SellItemModal
+          item={sellingItem}
+          onClose={() => setSellingItem(null)}
           onSuccess={loadItems}
         />
       )}
