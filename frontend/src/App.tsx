@@ -9,6 +9,7 @@ import TablesPage from "./pages/TablesPage";
 import EmployeesPage from "./pages/EmployeesPage";
 import SalesHistoryPage from "./pages/SalesHistoryPage";
 import ToastContainer from "./components/ToastContainer";
+import SettingsPage from "./pages/SettingsPage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/tables" element={<TablesPage />} />
         <Route path="/employees" element={<EmployeesPage />} />
         <Route path="/sales-history" element={<SalesHistoryPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
