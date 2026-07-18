@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Settings,
   LogOut,
+  Building2,
 } from "lucide-react";
 
 const navItems = [
@@ -22,6 +23,7 @@ const navItems = [
 ];
 
 const adminItems = [
+  { label: "Branches", path: "/branches", icon: Building2 },
   { label: "Employees", path: "/employees", icon: Users },
   { label: "Audit Logs", path: "/audit-logs", icon: ShieldCheck },
 ];
@@ -37,42 +39,56 @@ export default function MainLayout() {
   }
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+    `flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
       isActive
-        ? "bg-brand text-white"
-        : "text-charcoal/70 hover:bg-black/5"
+        ? "bg-white/15 text-white"
+        : "text-white/70 hover:bg-white/10 hover:text-white"
     }`;
+
+  const initials =
+    role === "OWNER"
+      ? "OW"
+      : "EM";
 
   return (
     <div className="min-h-screen flex bg-offwhite">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-black/10 flex flex-col">
-        <div className="px-6 py-6 flex items-center gap-2">
-          <img src={logo} alt="Lehulu" className="w-9 h-9 object-contain" />
-          <span className="font-display font-semibold text-charcoal">
-            Lehulu
-          </span>
+      <aside className="w-64 bg-brand flex flex-col">
+        <div className="px-6 py-6 flex items-center gap-2.5">
+          <img
+            src={logo}
+            alt="Lehulu"
+            className="w-9 h-9 object-contain rounded-lg bg-white/90 p-1"
+          />
+          <div>
+            <p className="font-display font-semibold text-white leading-tight">
+              Lehulu
+            </p>
+            <p className="text-[11px] text-white/60 leading-tight">
+              General Trading
+            </p>
+          </div>
         </div>
 
-        <nav className="flex-1 px-3 space-y-1">
-          <p className="px-4 text-xs font-semibold text-graytext uppercase tracking-wide mt-2 mb-1">
+        <nav className="flex-1 px-3 space-y-1 mt-2">
+          <p className="px-4 text-[11px] font-semibold text-white/50 uppercase tracking-wide mt-2 mb-1">
             Management
           </p>
           {navItems.map((item) => (
             <NavLink key={item.path} to={item.path} className={linkClass}>
-              <item.icon size={17} className="inline-block mr-2.5 -mt-0.5" />
+              <item.icon size={17} className="mr-2.5 shrink-0" />
               {item.label}
             </NavLink>
           ))}
 
           {role === "OWNER" && (
             <>
-              <p className="px-4 text-xs font-semibold text-graytext uppercase tracking-wide mt-4 mb-1">
+              <p className="px-4 text-[11px] font-semibold text-white/50 uppercase tracking-wide mt-4 mb-1">
                 Administration
               </p>
               {adminItems.map((item) => (
                 <NavLink key={item.path} to={item.path} className={linkClass}>
-                  <item.icon size={17} className="inline-block mr-2.5 -mt-0.5" />
+                  <item.icon size={17} className="mr-2.5 shrink-0" />
                   {item.label}
                 </NavLink>
               ))}
@@ -82,16 +98,30 @@ export default function MainLayout() {
 
         <div className="px-3 pb-4 space-y-1">
           <NavLink to="/settings" className={linkClass}>
-            <Settings size={17} className="inline-block mr-2.5 -mt-0.5" />
+            <Settings size={17} className="mr-2.5 shrink-0" />
             Settings
           </NavLink>
           <button
             onClick={handleLogout}
-            className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors flex items-center"
+            className="w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-colors"
           >
-            <LogOut size={17} className="mr-2.5" />
+            <LogOut size={17} className="mr-2.5 shrink-0" />
             Logout
           </button>
+
+          <div className="pt-3 mt-2 border-t border-white/15 flex items-center gap-2.5 px-2">
+            <div className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center text-xs font-semibold shrink-0">
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-white truncate">
+                {role === "OWNER" ? "Owner" : "Employee"}
+              </p>
+              <p className="text-[11px] text-white/60 truncate">
+                {role === "OWNER" ? "Owner" : "Staff"}
+              </p>
+            </div>
+          </div>
         </div>
       </aside>
 

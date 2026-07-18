@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getSaleHistory } from "../services/salesService";
 import type { SaleHistoryEntry } from "../types/sale";
+import { Search, History, Wallet, TrendingUp } from "lucide-react";
 
 export default function SalesHistoryPage() {
   const [sales, setSales] = useState<SaleHistoryEntry[]>([]);
@@ -25,6 +26,7 @@ export default function SalesHistoryPage() {
     (sum, s) => sum + s.priceAtSale * s.quantitySold,
     0
   );
+  const totalUnitsSold = filteredSales.reduce((sum, s) => sum + s.quantitySold, 0);
 
   async function loadSales() {
     setLoading(true);
@@ -51,27 +53,56 @@ export default function SalesHistoryPage() {
     });
   }
 
+  function initials(name: string) {
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
   return (
     <div>
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-6 flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+          <History size={22} />
+        </div>
         <div>
           <h1 className="font-display text-2xl font-semibold text-charcoal">
             Sale History
           </h1>
-          <p className="text-graytext text-sm mt-1">
+          <p className="text-graytext text-sm mt-0.5">
             Monitor all furniture transactions across branches.
           </p>
         </div>
-
-        {!loading && !error && (
-          <div className="bg-white rounded-xl border border-black/10 px-5 py-3 text-right">
-            <p className="text-xs text-graytext font-medium">Total Revenue</p>
-            <p className="font-display text-lg font-semibold text-charcoal">
-              {totalRevenue.toLocaleString()} ETB
-            </p>
-          </div>
-        )}
       </div>
+
+      {!loading && !error && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div className="bg-white rounded-xl border border-black/10 p-4 flex items-center gap-3">
+            <div className="bg-brand/10 text-brand rounded-lg p-2.5 shrink-0">
+              <Wallet size={18} />
+            </div>
+            <div>
+              <p className="text-xs text-graytext font-medium">Total Revenue</p>
+              <p className="font-display text-lg font-semibold text-charcoal leading-tight">
+                {totalRevenue.toLocaleString()} ETB
+              </p>
+              <p className="text-[11px] text-graytext">From filtered results</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-black/10 p-4 flex items-center gap-3">
+            <div className="bg-green-50 text-green-600 rounded-lg p-2.5 shrink-0">
+              <TrendingUp size={18} />
+            </div>
+            <div>
+              <p className="text-xs text-graytext font-medium">Units Sold</p>
+              <p className="font-display text-lg font-semibold text-charcoal leading-tight">
+                {totalUnitsSold.toLocaleString()}
+              </p>
+              <p className="text-[11px] text-graytext">From filtered results</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading && (
         <div className="bg-white rounded-xl border border-black/10 p-10 text-center text-graytext text-sm">
@@ -82,14 +113,20 @@ export default function SalesHistoryPage() {
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
       {!loading && !error && (
-        <div className="flex items-center gap-3 mb-4">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by item, employee, or branch..."
-            className="flex-1 border border-black/10 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white"
-          />
+        <div className="flex items-center gap-3 mb-4 flex-wrap">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search
+              size={16}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-graytext"
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by item, employee, or branch..."
+              className="w-full border border-black/10 rounded-lg pl-10 pr-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white"
+            />
+          </div>
           {branches.length > 1 && (
             <select
               value={branchFilter}
@@ -111,7 +148,7 @@ export default function SalesHistoryPage() {
         <div className="bg-white rounded-xl border border-black/10 overflow-hidden shadow-sm">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-black/10 bg-black/[0.02] text-left text-graytext text-xs uppercase tracking-wide">
+              <tr className="border-b border-black/10 bg-brand/5 text-left text-graytext text-xs uppercase tracking-wide">
                 <th className="px-5 py-3.5 font-semibold">Date</th>
                 <th className="px-5 py-3.5 font-semibold">Item</th>
                 <th className="px-5 py-3.5 font-semibold">Type</th>
@@ -136,17 +173,30 @@ export default function SalesHistoryPage() {
                   key={sale.saleId}
                   className="border-b border-black/5 last:border-0 hover:bg-black/[0.015] transition-colors"
                 >
-                  <td className="px-5 py-4 text-graytext">{formatDate(sale.soldAt)}</td>
+                  <td className="px-5 py-4 text-graytext whitespace-nowrap">
+                    {formatDate(sale.soldAt)}
+                  </td>
                   <td className="px-5 py-4 font-semibold text-charcoal">
                     {sale.itemCode}
                   </td>
                   <td className="px-5 py-4 text-graytext">{sale.itemType}</td>
                   <td className="px-5 py-4 text-charcoal">{sale.quantitySold}</td>
-                  <td className="px-5 py-4 text-charcoal">
+                  <td className="px-5 py-4 text-brand font-semibold">
                     {(sale.priceAtSale * sale.quantitySold).toLocaleString()}
                   </td>
-                  <td className="px-5 py-4 text-graytext">{sale.branchName}</td>
-                  <td className="px-5 py-4 text-graytext">{sale.soldByName}</td>
+                  <td className="px-5 py-4">
+                    <span className="inline-flex items-center gap-1 bg-brand/10 text-brand-dark px-2.5 py-1 rounded-full text-xs font-medium">
+                      {sale.branchName}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-brand/10 text-brand flex items-center justify-center text-[10px] font-semibold shrink-0">
+                        {initials(sale.soldByName)}
+                      </div>
+                      <span className="text-graytext">{sale.soldByName}</span>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
