@@ -23,8 +23,11 @@ export default function LoginPage() {
       const data = await login(email, password);
       setAuth(data.token, data.role, data.branchId);
       navigate("/dashboard");
-    } catch {
-      setError("Invalid email or password");
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? "Invalid email or password";
+      setError(message);
     } finally {
       setLoading(false);
     }

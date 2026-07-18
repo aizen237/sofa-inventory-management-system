@@ -2,8 +2,8 @@ package com.sofacompany.sofa_backend.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -12,11 +12,13 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // In production this should come from an environment variable, not be hardcoded.
-    // For now, a placeholder secret — we'll move this to application.properties next.
-    private final SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final SecretKey key;
 
     private final long EXPIRATION_MS = 1000 * 60 * 60 * 8; // 8 hours
+
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
+        this.key = Keys.hmacShaKeyFor(java.util.Base64.getDecoder().decode(secret));
+    }
 
     public String generateToken(String email, String role, Long branchId) {
         return Jwts.builder()
