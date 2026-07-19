@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { getSaleHistory } from "../services/salesService";
 import type { SaleHistoryEntry } from "../types/sale";
-import { Search, History, Wallet, TrendingUp } from "lucide-react";
+import { Search, History, Wallet, TrendingUp, FileDown } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { useAuthStore } from "../store/authStore";
 
 export default function SalesHistoryPage() {
   const [sales, setSales] = useState<SaleHistoryEntry[]>([]);
@@ -9,6 +12,7 @@ export default function SalesHistoryPage() {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [branchFilter, setBranchFilter] = useState("ALL");
+  const role = useAuthStore((state) => state.role);
 
   const branches = Array.from(new Set(sales.map((s) => s.branchName))).sort();
 
@@ -59,20 +63,69 @@ export default function SalesHistoryPage() {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
+  function exportToPDF() {
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("Lehulu General Trading — Sale History", 14, 15);
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    const filterSummary = `Branch: ${branchFilter === "ALL" ? "All Branches" : branchFilter}${
+      searchQuery ? ` · Search: "${searchQuery}"` : ""
+    } · Generated: ${new Date().toLocaleString()}`;
+    doc.text(filterSummary, 14, 22);
+
+    autoTable(doc, {
+      startY: 28,
+      head: [["Date", "Item", "Type", "Qty", "Price (ETB)", "Branch", "Sold By"]],
+      body: filteredSales.map((s) => [
+        formatDate(s.soldAt),
+        s.itemCode,
+        s.itemType,
+        String(s.quantitySold),
+        (s.priceAtSale * s.quantitySold).toLocaleString(),
+        s.branchName,
+        s.soldByName,
+      ]),
+      headStyles: { fillColor: [210, 105, 30] },
+      styles: { fontSize: 9 },
+    });
+
+    const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    doc.text(`Total Revenue: ${totalRevenue.toLocaleString()} ETB`, 14, finalY + 10);
+
+    doc.save(`sale-history-${new Date().toISOString().slice(0, 10)}.pdf`);
+  }
+
   return (
     <div>
-      <div className="mb-6 flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
-          <History size={22} />
+      <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+            <History size={22} />
+          </div>
+          <div>
+            <h1 className="font-display text-2xl font-semibold text-charcoal">
+              Sale History
+            </h1>
+            <p className="text-graytext text-sm mt-0.5">
+              Monitor all furniture transactions across branches.
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-charcoal">
-            Sale History
-          </h1>
-          <p className="text-graytext text-sm mt-0.5">
-            Monitor all furniture transactions across branches.
-          </p>
-        </div>
+
+        {role === "OWNER" && !loading && !error && (
+          <button
+            onClick={exportToPDF}
+            className="flex items-center gap-1.5 bg-brand hover:bg-brand-dark text-white font-medium text-sm rounded-lg px-4 py-2.5 shadow-sm shadow-brand/30 transition-all hover:shadow-md"
+          >
+            <FileDown size={16} />
+            Export PDF
+          </button>
+        )}
       </div>
 
       {!loading && !error && (
