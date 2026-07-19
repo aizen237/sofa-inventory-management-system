@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import com.sofacompany.sofa_backend.exception.InvalidCredentialsException;
 import com.sofacompany.sofa_backend.exception.AccountLockedException;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/auth")
@@ -33,7 +34,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request) {
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         if (loginAttemptService.isLocked(request.getEmail())) {
             throw new AccountLockedException(
                     "Too many failed login attempts. Please try again in 15 minutes.");

@@ -1,10 +1,16 @@
 package com.sofacompany.sofa_backend.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class CreateUserRequest {
+
+    @NotBlank(message = "Full name is required")
     private String fullName;
-    private String roleName; // "OWNER" or "EMPLOYEE"
-    private Long branchId;   // nullable for OWNER
+
+    @NotBlank(message = "Role is required")
+    private String roleName;
+
+    private Long branchId;
 }

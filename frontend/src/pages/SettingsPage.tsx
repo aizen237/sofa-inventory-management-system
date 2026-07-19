@@ -22,6 +22,78 @@ export default function SettingsPage() {
       setError("New password must be at least 8 characters.");
       return;
     }
+    if (!/[A-Z]/.test(newPassword)) {
+      setError("New password must contain at least one uppercase letter.");
+      return;
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      setError("New password must contain at least one lowercase letter.");
+      return;
+    }
+    if (!/\d/.test(newPassword)) {
+      setError("New password must contain at least one number.");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      setError("New password must contain at least one uppercase letter.");
+      return;
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      setError("New password must contain at least one lowercase letter.");
+      return;
+    }
+    if (!/\d/.test(newPassword)) {
+      setError("New password must contain at least one number.");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      setError("New password must contain at least one uppercase letter.");
+      return;
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      setError("New password must contain at least one lowercase letter.");
+      return;
+    }
+    if (!/\d/.test(newPassword)) {
+      setError("New password must contain at least one number.");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      setError("New password must contain at least one uppercase letter.");
+      return;
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      setError("New password must contain at least one lowercase letter.");
+      return;
+    }
+    if (!/\d/.test(newPassword)) {
+      setError("New password must contain at least one number.");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      setError("New password must contain at least one uppercase letter.");
+      return;
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      setError("New password must contain at least one lowercase letter.");
+      return;
+    }
+    if (!/\d/.test(newPassword)) {
+      setError("New password must contain at least one number.");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      setError("New password must contain at least one uppercase letter.");
+      return;
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      setError("New password must contain at least one lowercase letter.");
+      return;
+    }
+    if (!/\d/.test(newPassword)) {
+      setError("New password must contain at least one number.");
+      return;
+    }
 
     setSubmitting(true);
     try {

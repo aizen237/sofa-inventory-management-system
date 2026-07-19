@@ -81,13 +81,26 @@ public class UserService {
             throw new InvalidCredentialsException("Current password is incorrect");
         }
 
-        if (request.getNewPassword() == null || request.getNewPassword().length() < 8) {
-            throw new IllegalArgumentException("New password must be at least 8 characters");
-        }
+        validatePasswordStrength(request.getNewPassword());
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         user.setMustChangePassword(false);
         userRepository.save(user);
+    }
+
+    private void validatePasswordStrength(String password) {
+        if (password == null || password.length() < 8) {
+            throw new IllegalArgumentException("Password must be at least 8 characters");
+        }
+        if (!password.matches(".*[A-Z].*")) {
+            throw new IllegalArgumentException("Password must contain at least one uppercase letter");
+        }
+        if (!password.matches(".*[a-z].*")) {
+            throw new IllegalArgumentException("Password must contain at least one lowercase letter");
+        }
+        if (!password.matches(".*\\d.*")) {
+            throw new IllegalArgumentException("Password must contain at least one number");
+        }
     }
 
     public UserSummaryResponse updateUser(Long id, UpdateUserRequest request) {

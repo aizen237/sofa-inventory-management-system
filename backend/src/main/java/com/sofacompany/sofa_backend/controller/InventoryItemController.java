@@ -10,6 +10,7 @@ import com.sofacompany.sofa_backend.dto.SaleResponse;
 import com.sofacompany.sofa_backend.dto.SaleHistoryResponse;
 import java.util.List;
 import com.sofacompany.sofa_backend.dto.DashboardStatsResponse;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/items")
@@ -22,7 +23,7 @@ public class InventoryItemController {
     }
 
     @PostMapping
-    public InventoryItemResponse createItem(@RequestBody InventoryItemRequest request, Authentication authentication) {
+    public InventoryItemResponse createItem(@Valid @RequestBody InventoryItemRequest request, Authentication authentication) {
         String email = authentication.getName();
         return inventoryItemService.createItem(request, email);
     }
@@ -36,7 +37,7 @@ public class InventoryItemController {
 
     @PutMapping("/{id}")
     public InventoryItemResponse updateItem(@PathVariable Long id,
-                                            @RequestBody InventoryItemRequest request,
+                                            @Valid @RequestBody InventoryItemRequest request,
                                             Authentication authentication) {
         String email = authentication.getName();
         return inventoryItemService.updateItem(id, request, email);
@@ -56,7 +57,7 @@ public class InventoryItemController {
 
     @PostMapping("/{id}/sell")
     public SaleResponse sellItem(@PathVariable Long id,
-                                 @RequestBody SaleRequest request,
+                                 @Valid @RequestBody SaleRequest request,
                                  Authentication authentication) {
         String email = authentication.getName();
         return inventoryItemService.sellItem(id, request, email);
