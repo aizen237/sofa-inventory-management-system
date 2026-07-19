@@ -11,6 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import com.sofacompany.sofa_backend.repository.UserRepository;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,9 +20,11 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserRepository userRepository) {
         this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -41,16 +44,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String role = claims.get("role", String.class);
                 Long branchId = claims.get("branchId", Long.class);
 
-                var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+                boolean isActive = userRepository.findByEmail(email)
+                        .map(user -> user.isActive())
+                        .orElse(false);
 
-                var authToken = new UsernamePasswordAuthenticationToken(
-                        email, null, authorities
-                );
+                if (isActive) {
+                    var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
 
-                // Attach branchId so controllers/services can access it later
-                request.setAttribute("branchId", branchId);
+                    var authToken = new UsernamePasswordAuthenticationToken(
+                            email, null, authorities
+                    );
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    // Attach branchId so controllers/services can access it later
+                    request.setAttribute("branchId", branchId);
+
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+                // If the user is inactive (deactivated or deleted), we simply don't
+                // authenticate them — the request proceeds as anonymous, and will
+                // be rejected downstream by .anyRequest().authenticated()
             }
         }
 
